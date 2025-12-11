@@ -1116,7 +1116,9 @@ class _WeatherPageState extends State<WeatherPage> {
             child: Container(
               height: 36,
               decoration: BoxDecoration(
-                color: isDark ? Colors.white.withOpacity(0.15) : Colors.black87,
+                color: isDark
+                    ? Colors.white.withOpacity(0.15)
+                    : const Color(0xFF4C4C4C),
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
@@ -1124,7 +1126,7 @@ class _WeatherPageState extends State<WeatherPage> {
                     offset: const Offset(0, 8),
                     color: isDark
                         ? Colors.black.withOpacity(0.6)
-                        : Colors.black26,
+                        : Colors.black38,
                   ),
                 ],
               ),
@@ -1149,7 +1151,7 @@ class _WeatherPageState extends State<WeatherPage> {
         gradient: LinearGradient(
           colors: isDark
               ? const [Color(0xFFE0E0E0), Color(0xFFBDBDBD)]
-              : const [Colors.black, Color(0xFF333333)],
+              : const [Color(0xFF555555), Color(0xFF888888)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
