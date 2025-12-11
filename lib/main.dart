@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -119,6 +120,8 @@ class _WeatherPageState extends State<WeatherPage> {
 
   final PageController _pageController = PageController();
   int _currentPageIndex = 0;
+  bool _showPageIndicator = false; // 是否顯示頁面指示點
+  Timer? _indicatorHideTimer; // 延遲隱藏使用的計時器
 
   @override
   void initState() {
@@ -129,6 +132,7 @@ class _WeatherPageState extends State<WeatherPage> {
 
   @override
   void dispose() {
+    _indicatorHideTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -625,6 +629,25 @@ class _WeatherPageState extends State<WeatherPage> {
     }
   }
 
+  void _triggerPageIndicator() {
+    // 每次有滑動，就先取消舊的 timer
+    _indicatorHideTimer?.cancel();
+
+    if (!_showPageIndicator) {
+      setState(() {
+        _showPageIndicator = true;
+      });
+    }
+
+    // 停止一段時間沒動就自動隱藏
+    _indicatorHideTimer = Timer(const Duration(seconds: 1), () {
+      if (!mounted) return;
+      setState(() {
+        _showPageIndicator = false;
+      });
+    });
+  }
+
   // ================== UI ==================
 
   @override
@@ -643,13 +666,25 @@ class _WeatherPageState extends State<WeatherPage> {
                   _buildTopBar(scheme),
                   const SizedBox(height: 24),
                   Expanded(
-                    child: PageView.builder(
-                      controller: _pageController,
-                      onPageChanged: _onPageChanged,
-                      itemCount: 1 + _extraLocations.length,
-                      itemBuilder: (context, index) {
-                        return Center(child: _buildHeroArea());
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification: (notification) {
+                        // 只處理 PageView 本身的滑動
+                        if (notification.metrics is PageMetrics) {
+                          if (notification is ScrollStartNotification ||
+                              notification is ScrollUpdateNotification) {
+                            _triggerPageIndicator(); // 有滑動就顯示／重置隱藏計時
+                          }
+                        }
+                        return false; // 不攔截其他通知
                       },
+                      child: PageView.builder(
+                        controller: _pageController,
+                        onPageChanged: _onPageChanged,
+                        itemCount: 1 + _extraLocations.length,
+                        itemBuilder: (context, index) {
+                          return Center(child: _buildHeroArea());
+                        },
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -797,7 +832,9 @@ class _WeatherPageState extends State<WeatherPage> {
 
   Widget _buildPageIndicator() {
     final int total = 1 + _extraLocations.length;
-    if (total <= 1) {
+
+    // 沒有多頁或目前設定為隱藏時，不顯示指示點
+    if (total <= 1 || !_showPageIndicator) {
       return const SizedBox.shrink();
     }
 
