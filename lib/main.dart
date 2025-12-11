@@ -833,8 +833,8 @@ class _WeatherPageState extends State<WeatherPage> {
   Widget _buildPageIndicator() {
     final int total = 1 + _extraLocations.length;
 
-    // 沒有多頁或目前設定為隱藏時，不顯示指示點
-    if (total <= 1 || !_showPageIndicator) {
+    // 只有一頁時就完全不顯示
+    if (total <= 1) {
       return const SizedBox.shrink();
     }
 
@@ -842,21 +842,26 @@ class _WeatherPageState extends State<WeatherPage> {
     final Color activeColor = isDark ? Colors.white : Colors.black87;
     final Color inactiveColor = isDark ? Colors.white24 : Colors.black26;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(total, (index) {
-        final bool isActive = index == _currentPageIndex;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: isActive ? 8 : 6,
-          height: isActive ? 8 : 6,
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isActive ? activeColor : inactiveColor,
-          ),
-        );
-      }),
+    return AnimatedOpacity(
+      opacity: _showPageIndicator ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(total, (index) {
+          final bool isActive = index == _currentPageIndex;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: isActive ? 8 : 6,
+            height: isActive ? 8 : 6,
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isActive ? activeColor : inactiveColor,
+            ),
+          );
+        }),
+      ),
     );
   }
 
